@@ -110,6 +110,15 @@ int beat_this_debug_stage(struct beat_this_context* ctx, const float* logmel, in
 // threshold bug both show up as "wrong beats" at the event level.
 int beat_this_logits(struct beat_this_context* ctx, const float* logmel, int T, float* beat, float* downbeat);
 
+// Framewise beat/downbeat LOGITS of ONE model pass over `T` log-mel frames,
+// WITHOUT the windowing of beat_this_logits(): the caller owns the chunking
+// (at most BEAT_THIS_CHUNK_FRAMES frames per pass) and must discard the
+// BEAT_THIS_BORDER_FRAMES untrusted frames on each side. Exposed so that a
+// stream can be processed chunk by chunk, as soon as each chunk of log-mel
+// frames is available, with exactly the passes of beat_this_logits(). `beat`
+// and `downbeat` must each hold T floats. Returns T, or 0 on error.
+int beat_this_chunk_logits(struct beat_this_context* ctx, const float* logmel, int T, float* beat, float* downbeat);
+
 // Peak-pick framewise logits into events. Needs no model, so postprocessing can
 // be scored against the reference's OWN logits — which is the only way to tell
 // a peak-picking bug apart from an upstream numerical difference.

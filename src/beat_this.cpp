@@ -793,6 +793,19 @@ extern "C" int beat_this_logits(struct beat_this_context* ctx, const float* logm
     return T;
 }
 
+extern "C" int beat_this_chunk_logits(struct beat_this_context* ctx, const float* logmel, int T, float* beat,
+                                      float* downbeat) {
+    if (!ctx || !logmel || T <= 0 || !beat || !downbeat)
+        return 0;
+    std::vector<std::vector<float>> outs;
+    if (!bt_run(ctx, logmel, T, {"out_beat", "out_downbeat"}, outs, nullptr) || outs.size() != 2 ||
+        outs[0].size() != (size_t)T || outs[1].size() != (size_t)T)
+        return 0;
+    std::memcpy(beat, outs[0].data(), (size_t)T * sizeof(float));
+    std::memcpy(downbeat, outs[1].data(), (size_t)T * sizeof(float));
+    return T;
+}
+
 namespace {
 
 // Peak-pick: keep frames that equal the max over a +/-3 frame window and are
